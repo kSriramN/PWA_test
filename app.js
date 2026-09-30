@@ -1,57 +1,111 @@
 const status = document.getElementById("status");
+
 const enableBtn = document.getElementById("enableBtn");
 const notifyBtn = document.getElementById("notifyBtn");
+
+
+// Check browser support
+if (!("Notification" in window)) {
+    status.textContent = "❌ Notifications are not supported";
+} else {
+    status.textContent =
+        "Current permission: " + Notification.permission;
+}
+
 
 // Register Service Worker
 if ("serviceWorker" in navigator) {
 
-  navigator.serviceWorker.register("sw.js")
-    .then(() => {
-      console.log("Service Worker registered");
-      status.textContent = "Service Worker ready";
-    })
-    .catch(error => {
-      console.error("Service Worker failed:", error);
-      status.textContent = "Service Worker failed";
-    });
+    navigator.serviceWorker.register("./sw.js")
+        .then(registration => {
+
+            console.log("Service Worker registered:", registration);
+
+            status.textContent =
+                "Service Worker ready | Permission: " +
+                Notification.permission;
+
+        })
+        .catch(error => {
+
+            console.error("Service Worker error:", error);
+
+            status.textContent =
+                "❌ Service Worker error: " + error;
+
+        });
 }
 
 
 // Enable notifications
 enableBtn.addEventListener("click", async () => {
 
-  if (!("Notification" in window)) {
-    status.textContent = "Notifications are not supported";
-    return;
-  }
+    console.log("Notification permission before:",
+        Notification.permission);
 
-  const permission = await Notification.requestPermission();
+    if (!("Notification" in window)) {
+        status.textContent =
+            "❌ Notifications are not supported";
+        return;
+    }
 
-  console.log("Permission:", permission);
+    try {
 
-  if (permission === "granted") {
-    status.textContent = "✅ Notifications enabled";
-  } else {
-    status.textContent = "❌ Notification permission denied";
-  }
+        const permission =
+            await Notification.requestPermission();
+
+        console.log("Permission result:", permission);
+
+        status.textContent =
+            "Permission result: " + permission;
+
+    } catch (error) {
+
+        console.error(error);
+
+        status.textContent =
+            "❌ Error: " + error;
+
+    }
+
 });
 
 
 // Send notification
 notifyBtn.addEventListener("click", async () => {
 
-  if (Notification.permission !== "granted") {
-    alert("Please enable notifications first.");
-    return;
-  }
+    if (Notification.permission !== "granted") {
 
-  const registration = await navigator.serviceWorker.ready;
+        status.textContent =
+            "❌ Permission is not granted";
 
-  registration.showNotification("🔔 Test Notification", {
-    body: "Hello! Your PWA notification is working.",
-    icon: "https://via.placeholder.com/192",
-    badge: "https://via.placeholder.com/96",
-    vibrate: [200, 100, 200]
-  });
+        return;
+    }
+
+    try {
+
+        const registration =
+            await navigator.serviceWorker.ready;
+
+        await registration.showNotification(
+            "🔔 PWA Test",
+            {
+                body: "Your PWA notification is working!",
+                icon: "./icon-192.png",
+                badge: "./icon-192.png"
+            }
+        );
+
+        status.textContent =
+            "✅ Notification sent";
+
+    } catch (error) {
+
+        console.error(error);
+
+        status.textContent =
+            "❌ Notification error: " + error;
+
+    }
 
 });
