@@ -25,5 +25,23 @@
 
   <script src="app.js"></script>
 
+  <pre id="diag"></pre>
+<script>
+(async () => {
+  const out = [];
+  out.push('Notification.permission: ' + Notification.permission);
+  try {
+    const p = await navigator.permissions.query({ name: 'notifications' });
+    out.push('permissions.query: ' + p.state);
+  } catch (e) { out.push('permissions.query failed: ' + e.message); }
+  out.push('isSecureContext: ' + isSecureContext);
+  out.push('top-level frame: ' + (window.top === window));
+  out.push('standalone (installed): ' + matchMedia('(display-mode: standalone)').matches);
+  out.push('SW supported: ' + ('serviceWorker' in navigator));
+  out.push('UA: ' + navigator.userAgent);
+  document.getElementById('diag').textContent = out.join('\n');
+})();
+</script>
+
 </body>
 </html>
